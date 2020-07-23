@@ -158,9 +158,11 @@ public class RecordFragment extends Fragment {
 
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setOutputFile(recordFilePath+"/"+recordFileName);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC);
+        mediaRecorder.setAudioSamplingRate(48000);
+        mediaRecorder.setAudioEncodingBitRate(384000);
 
         try {
             mediaRecorder.prepare();
