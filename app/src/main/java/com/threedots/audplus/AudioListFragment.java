@@ -1,5 +1,6 @@
 package com.threedots.audplus;
 
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 
@@ -19,14 +20,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class AudioListFragment extends Fragment implements AudioListAdapter.OnItemListClick{
@@ -35,7 +42,7 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
     private ConstraintLayout playerSheet;
     private BottomSheetBehavior bottomSheetBehavior;
     private RecyclerView audioListRecyclerView;
-    private File[] allFiles;
+    private List<File> allFiles;
     private AudioListAdapter audioListAdapter;
 
     private MediaPlayer mediaPlayer = null;
@@ -51,6 +58,9 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
     private SeekBar playerSeekbar;
     private Handler seekbarHandler;
     private Runnable updateSeekbar;
+
+    private FloatingActionButton floatingDeleteButton;
+    private FloatingActionButton floatingCloseButton;
 
     File playingFile;
 
@@ -69,6 +79,7 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        allFiles = new ArrayList<>();
 
         navController = Navigation.findNavController(view);
 
@@ -78,14 +89,17 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
         forward_btn = view.findViewById(R.id.forward_btn);
 
 
-        fileNameTextView = view.findViewById(R.id.player_header_name);
+
+        fileNameTextView = view.findViewById(R.id.playerFileName);
         playerStatus = view.findViewById(R.id.player_header_title);
 
         playerSeekbar = view.findViewById(R.id.playerSeekBar);
 
         String recordFilePath = getActivity().getExternalFilesDir("/").getAbsolutePath();
         File directory = new File(recordFilePath);
-        allFiles = directory.listFiles();
+
+        File[] Files = directory.listFiles();
+        allFiles.addAll(Arrays.asList(Files));
 
         audioListAdapter = new AudioListAdapter(allFiles, this);
         audioListRecyclerView.setHasFixedSize(true);
@@ -106,6 +120,41 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
 
             }
         });
+
+        floatingDeleteButton = view.findViewById(R.id.floatingDeleteButton);
+        floatingDeleteButton.setVisibility(View.GONE);
+        floatingDeleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (int i=0; i<audioListAdapter.selectedItems.size(); i++) {
+                    Log.i("Delete", "onClick: " + audioListAdapter.selectedItems.get(i).toString());
+                    allFiles.remove(audioListAdapter.selectedItems.get(i));
+                    audioListAdapter.selectedItems.get(i).delete();
+                }
+
+                audioListAdapter.notifyDataSetChanged();
+                onMultiSelectEnded();
+                audioListAdapter.multiselect = false;
+                audioListAdapter.selectedItems.clear();
+            }
+        });
+
+        floatingCloseButton = view.findViewById(R.id.floatingCloseButton);
+        floatingCloseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("Close", "Button Clicked");
+                onMultiSelectEnded();
+                audioListAdapter.selectedItems.clear();
+                audioListAdapter.multiselect = false;
+
+                for (int i=0; i<allFiles.size(); i++) {
+                    AudioListAdapter.AudioViewHolder viewHolder = (AudioListAdapter.AudioViewHolder) audioListRecyclerView.findViewHolderForAdapterPosition(i);
+                    viewHolder.cardView.setCardBackgroundColor(Color.parseColor("#393B5B"));
+                }
+            }
+        });
+        floatingCloseButton.setVisibility(View.GONE);
 
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
@@ -165,6 +214,28 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
         }
 
     }
+
+    @Override
+    public void onMultiSelectStarted() {
+        floatingDeleteButton.setVisibility(View.VISIBLE);
+        floatingCloseButton.setVisibility(View.VISIBLE);
+        Animation animation = new TranslateAnimation(200f, 0f, 0f, 0f);
+        animation.setDuration(400);
+        floatingDeleteButton.startAnimation(animation);
+        floatingCloseButton.startAnimation(animation);
+    }
+
+    @Override
+    public void onMultiSelectEnded() {
+        Animation animation = new TranslateAnimation(0f, 0f, 0f, 400f);
+        animation.setDuration(600);
+        floatingDeleteButton.startAnimation(animation);
+        floatingDeleteButton.setVisibility(View.GONE);
+        floatingCloseButton.startAnimation(animation);
+        floatingCloseButton.setVisibility(View.GONE);
+    }
+
+
 
     private void pauseAudio() {
         mediaPlayer.pause();
