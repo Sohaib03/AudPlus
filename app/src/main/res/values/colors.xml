@@ -6,5 +6,7 @@
     <color name="dialogBackground">#24263D</color>
     <color name="colorBackground">#24263D</color>
     <color name="colorBackgroundLight">#393B5B</color>
+    <color name="colorBackgroundLighter">#575870</color>
+    <color name="white">#FFFFFF</color>
     <color name="colorText">#F1B295</color>
 </resources>
