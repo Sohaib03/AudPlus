@@ -3,6 +3,7 @@
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
+    <color name="dialogBackground">#24263D</color>
     <color name="colorBackground">#24263D</color>
     <color name="colorBackgroundLight">#393B5B</color>
     <color name="colorText">#F1B295</color>

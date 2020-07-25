@@ -18,9 +18,11 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.ScaleAnimation;
@@ -28,13 +30,14 @@ import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 
-public class RecordFragment extends Fragment {
+public class RecordFragment extends Fragment implements RenameDialog.OnInputListener {
 
 
     private NavController navController;
@@ -45,12 +48,28 @@ public class RecordFragment extends Fragment {
     private boolean isRecording = false;
 
     private String recordPermission = Manifest.permission.RECORD_AUDIO;
+    private String writePermission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     private int PERMISSION_CODE = 21;
 
     private MediaRecorder mediaRecorder;
-    private String recordFileName;
+    public String recordFileName;
+    public String recordFilePath;
 
     private Chronometer timer;
+
+    @Override
+    public void sendInput(String input) {
+        Log.d("Record Fragment", "Input=" + input);
+        if (input.length() <= 4 || !input.substring(input.length() - 4).equals(".3gp")) {
+            input = input + ".3gp";
+        }
+        filenameTextView.setText("Recording Stopped\nFile "+input+" Saved.");
+
+        File file1 = new File(recordFilePath+"/" + recordFileName);
+        File file2 = new File( recordFilePath +"/" + input);
+
+        file1.renameTo(file2);
+    }
 
     public RecordFragment() {
         // Required empty public constructor
@@ -141,17 +160,18 @@ public class RecordFragment extends Fragment {
     }
 
     private boolean checkPermissions() {
-        if (ActivityCompat.checkSelfPermission(getContext(), recordPermission) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getContext(), recordPermission) == PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(getContext(), writePermission) == PackageManager.PERMISSION_GRANTED  ) {
             return true;
         } else {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{recordPermission}, PERMISSION_CODE);
+            ActivityCompat.requestPermissions(getActivity(), new String[]{recordPermission, writePermission}, PERMISSION_CODE);
             return false;
         }
     }
 
     private void startRecording() {
 
-        String recordFilePath = getActivity().getExternalFilesDir("/").getAbsolutePath();
+        recordFilePath = getActivity().getExternalFilesDir("/").getAbsolutePath();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss", Locale.CANADA);
         Date now = new Date();
         recordFileName = "Record_"+formatter.format(now)+".3gp";
@@ -179,8 +199,9 @@ public class RecordFragment extends Fragment {
     }
 
     private void stopRecording() {
+        RenameDialog renameDialog = new RenameDialog(this, recordFileName);
+        renameDialog.show(getChildFragmentManager(), "Rename Dialog");
         timer.stop();
-        filenameTextView.setText("Recording Stopped\nFile "+recordFileName+" Saved.");
         mediaRecorder.stop();
         mediaRecorder.release();
         mediaRecorder = null;
@@ -194,4 +215,7 @@ public class RecordFragment extends Fragment {
             stopRecording();
         }
     }
+
+
+
 }
