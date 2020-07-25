@@ -77,6 +77,7 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
         rewind_btn = view.findViewById(R.id.rewind_btn);
         forward_btn = view.findViewById(R.id.forward_btn);
 
+
         fileNameTextView = view.findViewById(R.id.player_header_name);
         playerStatus = view.findViewById(R.id.player_header_title);
 
@@ -151,9 +152,6 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
                 resumeAudio();
             }
         });
-
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
-        itemTouchHelper.attachToRecyclerView(audioListRecyclerView);
     }
 
     @Override
@@ -248,18 +246,4 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.OnIt
         }
     }
 
-    ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT ) {
-        @Override
-        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-            return false;
-        }
-
-        @Override
-        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-            int position = viewHolder.getAdapterPosition();
-            if (direction == ItemTouchHelper.LEFT) {
-                Log.i("Swiped:", "onSwiped: " + position);
-            }
-        }
-    };
 }
